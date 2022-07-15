@@ -1,3 +1,4 @@
+(* ocamlfind ocamlopt -package graphics -linkpkg -g graphic.ml -o graphic *)
 open Graphics;;
 open_graph " 480x270"
 ;set_window_title "Diskloud Window";;
