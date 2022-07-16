@@ -28,6 +28,10 @@ let rev lst =
        | h :: t -> aux (h :: res) t
     in aux [] lst
 
+let rec reverse = function (* not optimal  (because of list append)*)
+| [] -> []
+| h :: t -> (reverse t) @ [h];;
+
 let palindrome lst = 
     lst = rev lst
 

@@ -29,5 +29,5 @@ let main = if !diop_mode then
     while not !crypt_loop do
         let str = Rsa.cryptMain (Printf.printf "Enter the second key (depends on whether the process is an encryption or a decryption) : "; read_int ()) (Printf.printf "Enter the first key (independent of process type : encryption/decryption) : "; read_int ()) (Printf.printf "Enter the value to encrypt/decrypt : "; read_int ()); print_string "\nHave another try ? (y/n) "; read_line () in
         if str.[0] = 'n' then crypt_loop := true
-    done;    
+    done;
   else print_endline "No valid mode chosen. Exiting.." ;;

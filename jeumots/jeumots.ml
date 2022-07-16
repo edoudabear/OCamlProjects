@@ -20,6 +20,9 @@ let print_boolean = function
 | true -> print_endline "true"
 | false -> print_endline "false";;
 
+let str_to_list str = List.filter (fun h -> if h<>' ' then true else false) (List.init (String.length str) (fun t -> Char.uppercase_ascii  str.[t]));;
+let filter_by_char cha lst = List.filter (fun h -> if h<>cha then true else false) lst
+
 let wordNo fileName line =
   let ic = open_in fileName in (
     try 
@@ -36,6 +39,10 @@ let wordNo fileName line =
     close_in_noerr ic;           (* emergency closing *)
     raise e
   );;
+
+let convertWordToStar=
+
+let rec wordGuess = function
 
 let main = 
   if !newWord<>"" then (
