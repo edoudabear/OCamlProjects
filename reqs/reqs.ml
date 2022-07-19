@@ -1,5 +1,5 @@
 (*
-COMPILING COMMAND : ocamlfind ocamlc -package quests,core,ppx_yojson,lwt_ppx -linkpkg -o reqs -thread reqs.ml
+COMPILING COMMAND : ocamlfind ocamlc -package quests,ppx_yojson,lwt_ppx -linkpkg -o reqs -thread reqs.ml
 *)
 open Lwt;;
 open Yojson;;
@@ -46,7 +46,7 @@ let () =
     (Lwt_list.iter_s
        (fun f -> f ())
        [
-         (* get; *)
+         get;
          post_form;
          post_json;
          gzip_response;
