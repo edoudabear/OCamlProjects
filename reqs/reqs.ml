@@ -5,28 +5,28 @@ open Lwt;;
 open Yojson;;
 
 let get () =
-  print_endline "Performing req 1.." ; Quests.get "http://httpbin.org/get"
+  print_endline "Performing req 1.." ; Quests.get "https://e.diskloud.fr/spotipyAPI"
     ~params:[ ("key1", "value1"); ("key2", "value2") ]
   >|= Quests.Response.show >|= print_endline;;
 
 let post_form () =
-  print_endline "Performing req 2.." ; Quests.post "http://httpbin.org/post" ~data:(Form [ ("key", "value") ])
+  print_endline "Performing req 2.." ; Quests.post "https://e.diskloud.fr/Dilab/get" ~data:(Form [ ("type", "mainGroups") ])
   >|= Quests.Response.show >|= print_endline;;
 
 let post_json () =
-  Quests.post "http://httpbin.org/post" ~data:(Json [%yojson { key = "value" }])
+  Quests.post "https://e.diskloud.fr/Dilab/get" ~data:(Json [%yojson { content = "test" }])
   >|= Quests.Response.show >|= print_endline;;
 
 let gzip_response () =
-  print_endline "Performing req 3.." ; Quests.get "http://httpbin.org/gzip"
+  print_endline "Performing req 3.." ; Quests.get "https://e.diskloud.fr/spotipyAPI"
   >|= Quests.Response.show >|= print_endline;;
 
 let following_redirects () =
-  print_endline "Performing req 4.." ; Quests.get "http://httpbin.org/redirect/1"
+  print_endline "Performing req 4.." ; Quests.get "https://e.diskloud.fr/spotipyAPI"
   >|= Quests.Response.show >|= print_endline;;
 
 let basic_authentication () =
-  print_endline "Performing req 5.." ; Quests.get "https://postman-echo.com/basic-auth" ~auth:(Basic ("username", "password"))
+  print_endline "Performing req 5.." ; Quests.get "https://e.diskloud.fr/spotipyAPI" ~auth:(Basic ("Edouda", "test"))
   >|= Quests.Response.show >|= print_endline;;
 
 let bearer_authentication () =
