@@ -1,0 +1,84 @@
+type 'a suite = {u0 : 'a; f: 'a->'a};;
+
+let f_syracuse = function
+| n when n mod 2 = 0 -> n/2
+| n -> (3*n)+1;;
+
+let syracuse u0= {u0=u0;f=f_syracuse};;
+
+let rec nth {u0=u0;f=f} = function
+| n when n<0 -> failwith "Invalid argument"
+| 0 -> u0
+| n -> nth {u0=(f u0); f=f} (n-1);;
+
+let ()=print_int (nth {u0=1023;f=f_syracuse} 41);;
+
+let premiers {u0=u0;f=f} n=
+    let rec iteration uk = function
+    | n when n<0 -> failwith "Invalid argument"
+    | 0 -> []
+    | k -> uk::iteration (f uk) (k-1)
+    in iteration u0 n;;
+
+let ()=List.iter (fun h->print_string "\n"; print_int h) (premiers {u0=5;f=f_syracuse} 70);print_string "\n";;
+
+let rec index el = function
+| [] -> -1
+| h::t when h=el -> 0
+| h::t -> let check v = if v= (-1) then -1 else 1 + v in check (index el t)
+;;
+
+let periode {u0=u0;f=f} =
+    let rec iteration k = function
+    | uk::t -> let check v = 
+        if v>(-1) 
+        then (k,k-v-1) 
+        else iteration (k+1) ((f uk)::uk::t) in check (index uk t)
+    | _ -> failwith "Oooops"
+    in (iteration 1 [(f u0);u0]);;
+
+let print_couple (a,b) = print_string "("; print_int a; print_string "," ; print_int b ; print_string ")\n";;
+
+let () = print_couple (periode {u0=5;f=f_syracuse});print_string "\n";;
+
+let split2 lst k=
+    let rec auxi out lst k = match lst, k with
+    | (_,k) when  k<0 -> failwith "Oops 1"
+    | ([],k) when k>=0 -> failwith "Oops 2"
+    | (h::t,0) -> ((fst out),lst) 
+    | (h::t,k) -> auxi ((fst out)@[h],[]) t (k-1)
+    | _ -> failwith "error"
+    in auxi ([],[]) lst k;;
+
+let rec split lst k = match lst, k with
+| (lst,0) -> ([],lst)
+| ([],k) -> ([],[]) 
+| (h::t,k) -> let (l1,l2) = split t (k-1) in (h::l1,l2);;
+
+let decompose suite = 
+    let (k,p)=periode suite
+    in split (premiers (suite) (k+p)) p;;
+
+let () = let (a,b)= decompose (syracuse 42) in List.iter (fun h->print_string "\n"; print_int h) a; print_string "\nPart 2\n";List.iter (fun h->print_string "\n"; print_int h) b;;
+
+let floyd {u0=u0;f=f} =
+    let rec auxiliaire k uk up= match f uk,f (f up) with (*p=2k*)
+    | (a,b) when a=b -> let rec imin i ua ub = match (ua,ub) with
+                        | (a,b) when a=b -> i
+                        | (a,b) -> imin (i+1) (f ua) (f ub)
+                        in imin 0 (nth ({u0=u0;f=f}) k)
+    | (a,b) -> auxiliaire (k+1) a b
+    in auxiliaire 1 u0 (f u0);;
+
+let periode_m u = match floyd u with
+    | k -> let rec find_p p = function
+           | ukp when uk=ukp -> (k,p)
+           | ukp -> find_p (p+1) (u.f ukp)
+           and uk=nth u k in find_p 1 (u.f uk);;
+
+let preperiode u p =
+    let rec find_k k = function
+    | (a,b) when a=b -> k
+    | (a,b) -> find_k (k+1) (u.f a,u.f b)
+in find_k 0 (u.u0,nth u p);;
+

@@ -1,8 +1,22 @@
 exception SDError of string
 
-let isEmpty lst = match lst with
-    | [] -> true
-    | _ -> false
+(** Exo 5 fiche listes en OCaml (avec fold_left) 
+NB : Il y a DEUX fiches d'exercices différentes mais 
+portant toutes deux le nom "Listes en OCaml".
+ Attention à ne pas les confondre ! **)
+(* Question 5.1 *)
+let check1 f lst = if lst=[] then failwith "!![]!!" else 
+   let v=List.fold_left (fun h valu -> if (f h) then h else valu) (List.hd lst) lst
+   in if f v then v else failwith "Invalid v";;
+(* Question 5.2 *)
+(* corrigé imparfait *)
+(*let check2 f lst = if lst [] then -1 else
+    let value,_=List.fold_left (fun (a,b) value -> if b then (a,b) else (a+1,f value)) (-1,false) lst in
+    value;;*)
+(* Question 5.3 *)
+let check3 f lst = match lst with | [] -> failwith "" | h::t ->
+let v=List.fold_left (fun h valu -> if (f valu) then valu else h) (List.hd lst) lst 
+in if not (f v) then failwith "AAAA" else v;;    
 
 let rec last lst = match lst with
     | [] -> None
