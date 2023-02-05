@@ -1,9 +1,10 @@
-(* Prochain objectif : parser une expression écrite humainement ! *)
-
 type operation = Mult | Sum | Diff | Quotient;;
 type monome = (float*int);;
 type pol = monome list;;
 type expression = | Node of (operation*expression*expression) | Pow of float*expression | Fonction of string*expression | Leaf of pol;;
+
+(* Prochain objectif : parser une expression écrite humainement ! *)
+let parse str=Leaf [(42.,0)];;
 
 
 let expr=Node (Sum,Fonction ("f",Leaf [2.*.3.14,1]),Leaf [(2.5,0);(1.,1)]);;
