@@ -3,7 +3,7 @@ type monome = (float*int);;
 type pol = monome list;;
 type expression = | Node of (operation*expression*expression) | Pow of float*expression | Fonction of string*expression | Leaf of pol;;
 
-(* Prochain objectif : parser une expression écrite humainement ! *)
+(* Prochain objectif : parser une expression écrite humainement ! -> S'inspirer du TP d'info !*)
 let parse str=Leaf [(42.,0)];;
 
 
@@ -35,10 +35,12 @@ let rec mult_P p1 p2=match p1 with
 let rec print_P = function
 | [] -> ();
 | [(a,0)] ->  Printf.printf "%.4f" a;
+| [(1.,1)] -> Printf.printf "x";
 | [(a,1)] ->  Printf.printf "%.4fx" a;
 | [(a,b)] ->  Printf.printf "%.4fx^%d" a b;
 | (a,0)::t -> Printf.printf "%.4f+" a;print_P t;
-| (a,1)::t ->  Printf.printf "%.4fx+" a;
+| (1.,1)::t -> Printf.printf "x"; print_P t;
+| (a,1)::t ->  Printf.printf "%.4fx+" a; print_P t;
 | (a,b)::t -> Printf.printf "%.4fx^%d+" a b;print_P t;;
 
 let rec isEmpty = function
