@@ -32,16 +32,30 @@ let rec mult_P p1 p2=match p1 with
 | [] -> ([] : pol)
 | mon::t -> sum_P (mult_P_M p2 mon) (mult_P t p2);;
 
+let float_to_good_str f=
+  let str=string_of_float f in if str.[String.length str-1]='.' then String.sub str 0 (String.length str-1) else str;;
+
 let rec print_P = function
 | [] -> ();
-| [(a,0)] ->  Printf.printf "%.4f" a;
+| [(a,0)] ->  Printf.printf "%s" (float_to_good_str a);
 | [(1.,1)] -> Printf.printf "x";
-| [(a,1)] ->  Printf.printf "%.4fx" a;
-| [(a,b)] ->  Printf.printf "%.4fx^%d" a b;
-| (a,0)::t -> Printf.printf "%.4f+" a;print_P t;
+| [(a,1)] ->  Printf.printf "%sx" (float_to_good_str a);
+| [(a,b)] ->  Printf.printf "%sx^%d" (float_to_good_str a) b;
+| (a,0)::t -> Printf.printf "%s+" (float_to_good_str a);print_P t;
 | (1.,1)::t -> Printf.printf "x"; print_P t;
-| (a,1)::t ->  Printf.printf "%.4fx+" a; print_P t;
-| (a,b)::t -> Printf.printf "%.4fx^%d+" a b;print_P t;;
+| (a,1)::t ->  Printf.printf "%sx+" (float_to_good_str a); print_P t;
+| (a,b)::t -> Printf.printf "%sx^%d+" (float_to_good_str a) b;print_P t;;
+
+let rec print_P_latex = function
+| [] -> ();
+| [(a,0)] ->  Printf.printf "%s" (float_to_good_str a);
+| [(1.,1)] -> Printf.printf "x";
+| [(a,1)] ->  Printf.printf "%s" (float_to_good_str a);
+| [(a,b)] ->  Printf.printf "%sx^{%d}" (float_to_good_str a) b;
+| (a,0)::t -> Printf.printf "%s+" (float_to_good_str a);print_P t;
+| (1.,1)::t -> Printf.printf "x"; print_P t;
+| (a,1)::t ->  Printf.printf "%sx+" (float_to_good_str a); print_P t;
+| (a,b)::t -> Printf.printf "%sx^{%d}+" (float_to_good_str a) b;print_P t;; 
 
 let rec isEmpty = function
 | [] -> true
@@ -55,9 +69,20 @@ let rec print_expression = function
                         | Mult -> Printf.printf "(" ;print_expression exp1 ; Printf.printf ")*(" ; print_expression exp2; Printf.printf ")" ; ()
                         | Quotient -> Printf.printf "(" ;print_expression exp1 ; Printf.printf ")/(" ; print_expression exp2; Printf.printf ")" ; ()
                         end
-| Pow (k,exp) -> print_string "(";print_expression exp;Printf.printf ")^%f " k;
+| Pow (k,exp) -> print_string "(";print_expression exp;Printf.printf ")^%s " (float_to_good_str k);
 | Fonction (f,exp1) -> print_string f;print_string "(";print_expression exp1 ;print_string ")"; ()
-| Leaf po -> if isEmpty po then Printf.printf "0" else print_P po; ();;
+| Leaf po -> if isEmpty po then Printf.printf "0" else print_P_latex po; ();;
+
+let rec print_exp_latex=function
+| Node (op,exp1,exp2) -> begin match op with
+          | Sum -> print_exp_latex exp1 ; print_string "+" ; print_exp_latex exp2; ()
+          | Diff -> print_exp_latex exp1 ; print_string "-" ; print_exp_latex exp2; ()
+          | Mult -> Printf.printf "(" ;print_exp_latex exp1 ; Printf.printf ")\\time(" ; print_exp_latex exp2; Printf.printf ")" ; ()
+          | Quotient -> Printf.printf "\\frac{" ;print_exp_latex exp1 ; Printf.printf "}{" ; print_exp_latex exp2; Printf.printf "}" ; ()
+          end
+| Pow (k,exp) -> print_string "(";print_exp_latex exp;Printf.printf ")^{%s} " (float_to_good_str k);
+| Fonction (f,exp1) -> print_string f;print_string "(";print_exp_latex exp1 ;print_string ")"; ()
+| Leaf po -> if isEmpty po then Printf.printf "0" else print_P_latex po; ();;
 
 let derivee_f f exp1=match f with
 | "sin"-> Fonction ("cos",exp1)

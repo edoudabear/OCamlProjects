@@ -30,7 +30,32 @@ let word_tbl=
   | [] -> ()
   | h::t ->  arr.(i) <- (h,String.length h); copy (i+1) t
 in copy 0 words_list; arr;;
+let word_data=
+let nodes=Array.make (15*dico_size) (0 |> char_of_int) and
+    links=Array.make (15*dico_size) (0,0) and
+    adj=Array.make (15*dico_size) (0,0,0) and
+    last_link_ptr=ref (-1) in
+for i=0 to 15 do begin
+  let last_node_ptr=ref (-1) in
+  Printf.printf "i : %d\n" i;
+  for j=0 to dico_size-1 do
+    let str=fst word_tbl.(j) in
+    if String.length str>i && (!last_node_ptr=(-1) || nodes.(!last_node_ptr)<>(str.[i])) then begin
+      incr (last_node_ptr);
+      nodes.(!last_node_ptr)<-str.[i];
+    end else begin () end;
+    if i>0 && String.length str>i && (!last_link_ptr=(-1) || links.(!last_link_ptr)<>(str.[i-1],str.[i])) then begin 
+      incr last_link_ptr;
+      links.(!last_link_ptr)<-(str.[i-1],str.[i])
+    end
+  done;
+end done; (nodes,links,adj);;
 
+let c3_1 =function | (a,_,_) -> a ;;
+let c3_2 =function | (_,b,_) -> b ;;
+let c3_3 =function | (_,_,c) -> c;; 
+
+let () = Array.iter (fun (a,b) -> Printf.printf "%c,%c" a b;) (c3_2 word_data);;
 
 (* Cette fonction génère le tableau représentant la répartitions des caractères entrés par l'utilisateur (cf. compte-rendu) *)
 let generate_cards str =
@@ -84,12 +109,6 @@ let check1by1 str =
   | n -> reset_cards cardsCopy cards ; begin if (snd word_tbl.(n))=l && check_word cardsCopy (fst word_tbl.(n)) then  Printf.printf "%s\n" (fst word_tbl.(n)) else () end; aux (n+1)
 in aux 0 ;;
 
-
-(*let time f x = (* Fonction pour tester l'efficacité de search*)
-  let t = Sys.time() in
-  let fx = f x in
-  Printf.printf "Execution time (x=%s): %fs\n" x (Sys.time() -. t);
-  fx;;*)
 let search str = if control str then check1by1 str else ();;
 
 (* Boucle principale*)
