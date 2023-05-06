@@ -177,7 +177,7 @@ let tokenize str=
 let op_of=function | Op a -> a | _ -> failwith "not expected in op_of";;
 let val_of= function | Val a -> a | _ -> failwith "not expected in val_of";;
 
-let findMatch lst =
+let findMatch lst = (* Détermine l'emplacement d'une sous-expression *)
   let s=Stack.create () in
   let rec findMatch_aux = function
   | [] -> raise (SyntaxError "Parentheses do not match..")
@@ -197,7 +197,7 @@ let changeSign lst =
   | h::t -> h::aux t
   in aux lst;;
 
-let rec gen_substract k lst=match k,lst with
+let rec gen_substract k lst=match k,lst with (* extrait les k+1 premiers éléments d'une liste *)
 | 0,h::t -> [h],t
 | k,h::t when k>0 -> let a,b=gen_substract (k-1) t in h::a,b
 | _ -> raise (SyntaxError "')' not found");;  
