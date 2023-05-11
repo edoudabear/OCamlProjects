@@ -2,6 +2,7 @@ type operation = Mult | Sum | Diff | Quotient;;
 type monome = (float*int);;
 type pol = monome list;;
 type expression = | Node of (operation*expression*expression) | Pow of float*expression | Fonction of string*expression | Leaf of pol;;
+type matrix=float array array;;
 
 (* Prochain objectif : parser une expression écrite humainement ! -> S'inspirer du TP d'info !*)
 let parse str=Leaf [(42.,0)];;
@@ -167,5 +168,38 @@ and eval_f f expr x= match f with
 | "tan" -> tan (eval expr x)
 | "exp" -> exp (eval expr x)
 | _ -> failwith "This function is not generic.";;
+
+let generate a b dx=
+    if a>b then failwith "Wrong order" else
+    let rec generate_aux acc=function
+    | x when x-.dx<=a-> a::acc
+    | x -> generate_aux ((x-.dx)::acc) (x-.dx)
+    in generate_aux [b] b;; 
+
+let rec integr_up expr a b dx=
+    if a>b then -.(integr_up expr b a dx) else
+    let x_i=generate a b dx in
+    let rec iter acc=function
+    | [] | [_] -> acc
+    | x_1::x_2::t -> iter ((eval expr x_2)*.(x_2-.x_1)+.acc) (x_2::t)
+    in iter 0. x_i;;
+
+let integr_dn expr a b dx=
+if a>b then -.(integr_up expr b a dx) else
+  let x_i=generate a b dx in
+  let rec iter acc=function
+  | [] | [_] -> acc
+  | x_1::x_2::t -> iter ((eval expr x_1)*.(x_2-.x_1)+.acc) (x_2::t)
+  in iter 0. x_i;;
+
+let integr_rect expr a b dx=let u=integr_up expr a b dx and d=integr_dn expr a b dx in ((d+.u)/.2.,(u-.d)/.2.);;
+
+let integr_simpson expr a b dx=
+if a>b then -.(integr_up expr b a dx) else
+  let x_i=generate a b dx in
+  let rec iter acc=function
+  | [] | [_] -> acc
+  | x_1::x_2::t -> iter (((x_2-.x_1)/.6.)*.((eval expr x_1)+.4.*.(eval expr ((x_1+.x_2)/.2.))+.(eval expr x_2))+.acc) (x_2::t)
+  in iter 0. x_i;;
 
 let println_expression expr=expr |> print_expression; Printf.printf "\n";;
