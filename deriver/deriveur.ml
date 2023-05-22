@@ -4,7 +4,6 @@ type pol = monome list;;
 type expression = | Node of (operation*expression*expression) | Pow of float*expression | Fonction of string*expression | Leaf of pol;;
 type matrix=float array array;;
 
-(* Prochain objectif : parser une expression écrite humainement ! -> S'inspirer du TP d'info !*)
 let parse str=Leaf [(42.,0)];;
 
 
