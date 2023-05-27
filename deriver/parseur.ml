@@ -62,7 +62,7 @@ end
 
 
 
-and read_function lst=if lst=[] then failwith "RF error" else (* Code inspiré du TP lexer*)
+and read_function lst=if lst=[] then failwith "RF error" else (* Code inspiré du TP lexer *)
 match lst with
 | (Fonction (str,1))::OuvrAccolade::t when isFunRegistered str -> begin
       let a,b=gen_substract ((matchAccolade t)-1) t in begin match b with
@@ -88,7 +88,7 @@ match lst with
 ;;
 
 let isFunRegistered str=match str with
-| "cos" | "sin" | "tan" | "exp" -> true
+| "cos" | "sin" | "tan" | "exp" | "ln" -> true
 | _ -> false;;
 
 (* Deriver grammar
