@@ -1,0 +1,407 @@
+   0  $accept : %entry% $end
+
+   1  input : exp NEWLINE
+
+   2  exp : NUM
+   3      | NUM X
+   4      | exp PLUS exp
+   5      | exp MINUS exp
+   6      | exp MULTIPLY exp
+   7      | exp DIVIDE exp
+   8      | MINUS exp
+   9      | exp CARET exp
+  10      | L_PAREN exp R_PAREN
+  11      | X
+  12      | QUOTIENT TEX_BRACE_OPEN exp TEX_BRACE_CLOSE TEX_BRACE_OPEN exp TEX_BRACE_CLOSE
+
+  13  %entry% : '\001' input
+
+state 0
+	$accept : . %entry% $end  (0)
+
+	'\001'  shift 1
+	.  error
+
+	%entry%  goto 2
+
+
+state 1
+	%entry% : '\001' . input  (13)
+
+	L_PAREN  shift 3
+	NUM  shift 4
+	MINUS  shift 5
+	QUOTIENT  shift 6
+	X  shift 7
+	.  error
+
+	input  goto 8
+	exp  goto 9
+
+
+state 2
+	$accept : %entry% . $end  (0)
+
+	$end  accept
+
+
+state 3
+	exp : L_PAREN . exp R_PAREN  (10)
+
+	L_PAREN  shift 3
+	NUM  shift 4
+	MINUS  shift 5
+	QUOTIENT  shift 6
+	X  shift 7
+	.  error
+
+	exp  goto 10
+
+
+state 4
+	exp : NUM .  (2)
+	exp : NUM . X  (3)
+
+	X  shift 11
+	NEWLINE  reduce 2
+	R_PAREN  reduce 2
+	PLUS  reduce 2
+	MINUS  reduce 2
+	MULTIPLY  reduce 2
+	DIVIDE  reduce 2
+	CARET  reduce 2
+	TEX_BRACE_CLOSE  reduce 2
+
+
+state 5
+	exp : MINUS . exp  (8)
+
+	L_PAREN  shift 3
+	NUM  shift 4
+	MINUS  shift 5
+	QUOTIENT  shift 6
+	X  shift 7
+	.  error
+
+	exp  goto 12
+
+
+state 6
+	exp : QUOTIENT . TEX_BRACE_OPEN exp TEX_BRACE_CLOSE TEX_BRACE_OPEN exp TEX_BRACE_CLOSE  (12)
+
+	TEX_BRACE_OPEN  shift 13
+	.  error
+
+
+state 7
+	exp : X .  (11)
+
+	.  reduce 11
+
+
+state 8
+	%entry% : '\001' input .  (13)
+
+	.  reduce 13
+
+
+state 9
+	input : exp . NEWLINE  (1)
+	exp : exp . PLUS exp  (4)
+	exp : exp . MINUS exp  (5)
+	exp : exp . MULTIPLY exp  (6)
+	exp : exp . DIVIDE exp  (7)
+	exp : exp . CARET exp  (9)
+
+	NEWLINE  shift 14
+	PLUS  shift 15
+	MINUS  shift 16
+	MULTIPLY  shift 17
+	DIVIDE  shift 18
+	CARET  shift 19
+	.  error
+
+
+state 10
+	exp : exp . PLUS exp  (4)
+	exp : exp . MINUS exp  (5)
+	exp : exp . MULTIPLY exp  (6)
+	exp : exp . DIVIDE exp  (7)
+	exp : exp . CARET exp  (9)
+	exp : L_PAREN exp . R_PAREN  (10)
+
+	R_PAREN  shift 20
+	PLUS  shift 15
+	MINUS  shift 16
+	MULTIPLY  shift 17
+	DIVIDE  shift 18
+	CARET  shift 19
+	.  error
+
+
+state 11
+	exp : NUM X .  (3)
+
+	.  reduce 3
+
+
+state 12
+	exp : exp . PLUS exp  (4)
+	exp : exp . MINUS exp  (5)
+	exp : exp . MULTIPLY exp  (6)
+	exp : exp . DIVIDE exp  (7)
+	exp : MINUS exp .  (8)
+	exp : exp . CARET exp  (9)
+
+	CARET  shift 19
+	NEWLINE  reduce 8
+	R_PAREN  reduce 8
+	PLUS  reduce 8
+	MINUS  reduce 8
+	MULTIPLY  reduce 8
+	DIVIDE  reduce 8
+	TEX_BRACE_CLOSE  reduce 8
+
+
+state 13
+	exp : QUOTIENT TEX_BRACE_OPEN . exp TEX_BRACE_CLOSE TEX_BRACE_OPEN exp TEX_BRACE_CLOSE  (12)
+
+	L_PAREN  shift 3
+	NUM  shift 4
+	MINUS  shift 5
+	QUOTIENT  shift 6
+	X  shift 7
+	.  error
+
+	exp  goto 21
+
+
+state 14
+	input : exp NEWLINE .  (1)
+
+	.  reduce 1
+
+
+state 15
+	exp : exp PLUS . exp  (4)
+
+	L_PAREN  shift 3
+	NUM  shift 4
+	MINUS  shift 5
+	QUOTIENT  shift 6
+	X  shift 7
+	.  error
+
+	exp  goto 22
+
+
+state 16
+	exp : exp MINUS . exp  (5)
+
+	L_PAREN  shift 3
+	NUM  shift 4
+	MINUS  shift 5
+	QUOTIENT  shift 6
+	X  shift 7
+	.  error
+
+	exp  goto 23
+
+
+state 17
+	exp : exp MULTIPLY . exp  (6)
+
+	L_PAREN  shift 3
+	NUM  shift 4
+	MINUS  shift 5
+	QUOTIENT  shift 6
+	X  shift 7
+	.  error
+
+	exp  goto 24
+
+
+state 18
+	exp : exp DIVIDE . exp  (7)
+
+	L_PAREN  shift 3
+	NUM  shift 4
+	MINUS  shift 5
+	QUOTIENT  shift 6
+	X  shift 7
+	.  error
+
+	exp  goto 25
+
+
+state 19
+	exp : exp CARET . exp  (9)
+
+	L_PAREN  shift 3
+	NUM  shift 4
+	MINUS  shift 5
+	QUOTIENT  shift 6
+	X  shift 7
+	.  error
+
+	exp  goto 26
+
+
+state 20
+	exp : L_PAREN exp R_PAREN .  (10)
+
+	.  reduce 10
+
+
+state 21
+	exp : exp . PLUS exp  (4)
+	exp : exp . MINUS exp  (5)
+	exp : exp . MULTIPLY exp  (6)
+	exp : exp . DIVIDE exp  (7)
+	exp : exp . CARET exp  (9)
+	exp : QUOTIENT TEX_BRACE_OPEN exp . TEX_BRACE_CLOSE TEX_BRACE_OPEN exp TEX_BRACE_CLOSE  (12)
+
+	PLUS  shift 15
+	MINUS  shift 16
+	MULTIPLY  shift 17
+	DIVIDE  shift 18
+	CARET  shift 19
+	TEX_BRACE_CLOSE  shift 27
+	.  error
+
+
+state 22
+	exp : exp . PLUS exp  (4)
+	exp : exp PLUS exp .  (4)
+	exp : exp . MINUS exp  (5)
+	exp : exp . MULTIPLY exp  (6)
+	exp : exp . DIVIDE exp  (7)
+	exp : exp . CARET exp  (9)
+
+	MULTIPLY  shift 17
+	DIVIDE  shift 18
+	CARET  shift 19
+	NEWLINE  reduce 4
+	R_PAREN  reduce 4
+	PLUS  reduce 4
+	MINUS  reduce 4
+	TEX_BRACE_CLOSE  reduce 4
+
+
+state 23
+	exp : exp . PLUS exp  (4)
+	exp : exp . MINUS exp  (5)
+	exp : exp MINUS exp .  (5)
+	exp : exp . MULTIPLY exp  (6)
+	exp : exp . DIVIDE exp  (7)
+	exp : exp . CARET exp  (9)
+
+	MULTIPLY  shift 17
+	DIVIDE  shift 18
+	CARET  shift 19
+	NEWLINE  reduce 5
+	R_PAREN  reduce 5
+	PLUS  reduce 5
+	MINUS  reduce 5
+	TEX_BRACE_CLOSE  reduce 5
+
+
+state 24
+	exp : exp . PLUS exp  (4)
+	exp : exp . MINUS exp  (5)
+	exp : exp . MULTIPLY exp  (6)
+	exp : exp MULTIPLY exp .  (6)
+	exp : exp . DIVIDE exp  (7)
+	exp : exp . CARET exp  (9)
+
+	CARET  shift 19
+	NEWLINE  reduce 6
+	R_PAREN  reduce 6
+	PLUS  reduce 6
+	MINUS  reduce 6
+	MULTIPLY  reduce 6
+	DIVIDE  reduce 6
+	TEX_BRACE_CLOSE  reduce 6
+
+
+state 25
+	exp : exp . PLUS exp  (4)
+	exp : exp . MINUS exp  (5)
+	exp : exp . MULTIPLY exp  (6)
+	exp : exp . DIVIDE exp  (7)
+	exp : exp DIVIDE exp .  (7)
+	exp : exp . CARET exp  (9)
+
+	CARET  shift 19
+	NEWLINE  reduce 7
+	R_PAREN  reduce 7
+	PLUS  reduce 7
+	MINUS  reduce 7
+	MULTIPLY  reduce 7
+	DIVIDE  reduce 7
+	TEX_BRACE_CLOSE  reduce 7
+
+
+state 26
+	exp : exp . PLUS exp  (4)
+	exp : exp . MINUS exp  (5)
+	exp : exp . MULTIPLY exp  (6)
+	exp : exp . DIVIDE exp  (7)
+	exp : exp . CARET exp  (9)
+	exp : exp CARET exp .  (9)
+
+	CARET  shift 19
+	NEWLINE  reduce 9
+	R_PAREN  reduce 9
+	PLUS  reduce 9
+	MINUS  reduce 9
+	MULTIPLY  reduce 9
+	DIVIDE  reduce 9
+	TEX_BRACE_CLOSE  reduce 9
+
+
+state 27
+	exp : QUOTIENT TEX_BRACE_OPEN exp TEX_BRACE_CLOSE . TEX_BRACE_OPEN exp TEX_BRACE_CLOSE  (12)
+
+	TEX_BRACE_OPEN  shift 28
+	.  error
+
+
+state 28
+	exp : QUOTIENT TEX_BRACE_OPEN exp TEX_BRACE_CLOSE TEX_BRACE_OPEN . exp TEX_BRACE_CLOSE  (12)
+
+	L_PAREN  shift 3
+	NUM  shift 4
+	MINUS  shift 5
+	QUOTIENT  shift 6
+	X  shift 7
+	.  error
+
+	exp  goto 29
+
+
+state 29
+	exp : exp . PLUS exp  (4)
+	exp : exp . MINUS exp  (5)
+	exp : exp . MULTIPLY exp  (6)
+	exp : exp . DIVIDE exp  (7)
+	exp : exp . CARET exp  (9)
+	exp : QUOTIENT TEX_BRACE_OPEN exp TEX_BRACE_CLOSE TEX_BRACE_OPEN exp . TEX_BRACE_CLOSE  (12)
+
+	PLUS  shift 15
+	MINUS  shift 16
+	MULTIPLY  shift 17
+	DIVIDE  shift 18
+	CARET  shift 19
+	TEX_BRACE_CLOSE  shift 30
+	.  error
+
+
+state 30
+	exp : QUOTIENT TEX_BRACE_OPEN exp TEX_BRACE_CLOSE TEX_BRACE_OPEN exp TEX_BRACE_CLOSE .  (12)
+
+	.  reduce 12
+
+
+17 terminals, 4 nonterminals
+14 grammar rules, 31 states

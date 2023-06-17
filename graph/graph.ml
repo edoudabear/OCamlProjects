@@ -59,3 +59,25 @@ let topological_sort gr vertices=
   in
   List.iter (fun v->if Hashtbl.mem visited v then () else explorer v) vertices;
   !res;;
+
+(* Attention, cette fonction suppose que le graphe n'est pas orienté et connxe !*)
+let find_cycle_connex gr a_0=
+  let d=Hashtbl.create 42 in
+  let rec explore v= 
+	let rec iter = function
+	| [] -> None
+	| h::t when Hashtbl.mem d h -> if Hashtbl.find d h = v 
+					then iter t
+	 			       else begin
+					Hashtbl.replace d h v; Some h
+				       end
+	| h::t -> match Hashtbl.add d h v ; explore h with
+		  | None -> iter t
+		  | Some v -> Some v
+	in iter (neighbors v gr)
+in Hashtbl.add d a_0 a_0; match explore a_0 with
+			| None -> None
+			| Some v -> let rec follow_cycle=function
+				| k when Hashtbl.find d k=v ->  [k]
+				| k -> Printf.printf "%d" k; k::follow_cycle (Hashtbl.find d k)
+				in Some (follow_cycle v);; 

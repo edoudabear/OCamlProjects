@@ -1,13 +1,13 @@
 (* file: main.ml *)
 (* Assumes the parser file is "rtcalc.mly" and the lexer file is "lexer.mll". *)
+
+
+
 let main () =
-  try
-  let lexbuf = 
-    Lexing.from_channel stdin in
   while true do
-   try Calc.input Lexer.token lexbuf with
+   try (Calc.input Lexer.token (Lexing.from_string (read_line ()^"\n")) |> Deriveur.print_struct;Printf.printf "\n") with
    |  Stdlib.Parsing.Parse_error -> Printf.printf "Error\n%!"
+   | Deriveur.Empty_input -> Printf.printf "Veuillez renseigner une fonction :\n"
   done
-  with End_of_file -> exit 0
-  let _ = Printexc.print main ()
+  let _ = Printexc.print main ();;
   

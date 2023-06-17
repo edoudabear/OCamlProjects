@@ -20,8 +20,12 @@ rule token = parse
 { NUM (float_of_string (String.map (fun h->if h=',' then '.' else h) num)) }
 | '+' { PLUS }
 | '-' { MINUS }
-| '*'
-| "\\times" { MULTIPLY }
+| '{' { TEX_BRACE_OPEN }
+| '}' { TEX_BRACE_CLOSE }
+| '(' { L_PAREN }
+| ')' { R_PAREN }
+| 'x' { X }
+| '*' | "\\times" { MULTIPLY }
 | "\\frac" { QUOTIENT }
 | '/' { DIVIDE }
 | '^' { CARET }

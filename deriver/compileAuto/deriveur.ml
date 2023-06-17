@@ -1,15 +1,20 @@
 type operation = Mult | Sum | Diff | Quotient;;
 type monome = (float*int);;
 type pol = monome list;;
-type expression = | Node of (operation*expression*expression) | Fonction of string*expression | Leaf of pol;;
+type expression = | Node of (operation*expression*expression) | Fonction of string*expression | Leaf of float | X;;
 type matrix=float array array;;
 
-let parse str=Leaf [(42.,0)];;
+exception Empty_input;;
+
+let parse str=Leaf 42.;;
 
 
-let expr=Node (Sum,Fonction ("cos",Leaf [2.*.3.14,1]),Leaf [(2.5,0);(1.,1)]);;
+let expr=Node (Sum,
+  Fonction ("cos",Node(Mult,Leaf (2.*.3.14),X)),
+  Node(Sum,Leaf(2.5),X)
+  );;
 
-let expr2=Node (Sum,Fonction ("exp",Fonction("ln",Fonction ("f",Leaf [2.*.3.14,1]))),Leaf [(2.5,0);(1.,1)]);;
+(*let expr2=Node (Sum,Fonction ("exp",Fonction("ln",Fonction ("f",Leaf [2.*.3.14,1]))),Leaf [(2.5,0);(1.,1)]);;*)
 
 let eval_P p x= List.fold_left (fun j (a_k,p)->j+.a_k*.(x**(p |> float_of_int))) (0.) p;;
 
@@ -71,8 +76,21 @@ let rec print_expression = function
                         end
 (*| Pow (k,exp) -> print_string "(";print_expression exp;Printf.printf ")^%s " (float_to_good_str k); *)
 | Fonction (f,exp1) -> print_string f;print_string "(";print_expression exp1 ;print_string ")"; ()
-| Leaf po -> if isEmpty po then Printf.printf "0" else print_P_latex po; ();;
+| Leaf po -> Printf.printf "%f" po; ()
+| X -> Printf.printf "x";;
 
+
+let rec print_struct=function
+| Node (op,exp1,exp2) -> Printf.printf "Node(";begin match op with
+                        | Sum -> Printf.printf "Sum,";print_struct exp1 ; Printf.printf ","; print_struct exp2; Printf.printf ")"
+                        | Diff -> Printf.printf "Diff,";print_struct exp1 ; Printf.printf ","; print_struct exp2; Printf.printf ")"
+                        | Mult -> Printf.printf "Mult,";print_struct exp1 ; Printf.printf ","; print_struct exp2; Printf.printf ")"
+                        | Quotient -> Printf.printf "Quotient,";print_struct exp1 ; Printf.printf ","; print_struct exp2; Printf.printf ")"
+                        end
+(*| Pow (k,exp) -> print_string "(";print_struct exp;Printf.printf ")^%s " (float_to_good_str k); *)
+| Fonction (f,exp1) -> Printf.printf "Fonction (";print_string f;print_string ",";print_struct exp1 ;print_string ")"; ()
+| Leaf po -> Printf.printf "Leaf %f" po; ()
+| X -> Printf.printf "X";;
 let rec print_exp_latex=function
 | Node (op,exp1,exp2) -> begin match op with
           | Sum -> print_exp_latex exp1 ; print_string "+" ; print_exp_latex exp2; ()
@@ -81,53 +99,54 @@ let rec print_exp_latex=function
           | Quotient -> Printf.printf "\\frac{" ;print_exp_latex exp1 ; Printf.printf "}{" ; print_exp_latex exp2; Printf.printf "}" ; ()
           end
 | Fonction (f,exp1) -> print_string f;print_string "(";print_exp_latex exp1 ;print_string ")"; ()
-| Leaf po -> if isEmpty po then Printf.printf "0" else print_P_latex po; ();;
+| Leaf po -> Printf.printf "%f" po; ()
+| X -> Printf.printf "x";;
 
 let derivee_f f exp1=match f with
 | "sin"-> Fonction ("cos",exp1)
-| "cos" -> Node (Mult,Leaf [(-1.,0)],Fonction ("sin",exp1))
+| "cos" -> Node (Mult,Leaf(-1.),Fonction ("sin",exp1))
 | "exp" -> Fonction ("exp",exp1)
 | _ -> Fonction (f^"'",exp1);;
 
 let rec minus_P p=List.map (fun (a,b) -> (-.a,b)) p;;
 
 let rec clean = function
-| Node (Sum,Leaf b,Leaf a)  -> begin let iEa=isEmpty a and iEb=isEmpty b in match iEa,iEb with
-                              | true,true -> Leaf []
-                              | true,false -> Leaf a
-                              | false,true -> Leaf b
-                              | false,false-> Node (Sum,Leaf b,Leaf a)
+| Node (Sum,Leaf b,Leaf a)  -> begin match b,a with
+                              | 0.,0. -> Leaf 0.
+                              | b,0. -> Leaf b
+                              | 0.,a -> Leaf a
+                              | b,a-> Leaf (b+.a)
                               end
-| Node (Sum,Leaf a,b) -> if isEmpty a then clean b else Node (Sum,Leaf a,b)
+| Node (Sum,Leaf a,b) -> if a=0. then clean b else Node (Sum,Leaf a,clean b)
 | Node (Sum,a,Leaf b) -> clean (Node (Sum,Leaf b,a))
 
-| Node (Diff,Leaf b,Leaf a) -> begin let iEa=isEmpty a and iEb=isEmpty b in match iEa,iEb with
-                              | true,true -> Leaf []
-                              | true,false -> Leaf a
-                              | false,true -> Leaf (minus_P b)
-                              | false,false-> Node (Diff,Leaf b,Leaf a)
+| Node (Diff,Leaf b,Leaf a)  -> begin match b,a with
+                              | 0.,0. -> Leaf 0.
+                              | b,0. -> Leaf b
+                              | 0.,a -> Leaf (-.a)
+                              | b,a-> Leaf (b-.a)
                               end
-| Node (Diff,Leaf a,b) -> if isEmpty a then Node(Mult,Leaf [(-1.,0)],clean b) else Node (Diff,Leaf a,b)
-| Node (Diff,a,Leaf b) -> if isEmpty b then clean a else Node (Diff,clean a,Leaf b)
+| Node (Diff,Leaf a,b) -> if a=0. then Node(Mult,Leaf (-.1.),clean b) else Node (Diff,Leaf a,clean b)
+| Node (Diff,a,Leaf b) -> if b=0. then clean a else Node (Diff,clean a,Leaf b)
 
-| Node (Mult,Leaf a,Leaf b) -> begin let iEa=isEmpty a and iEb=isEmpty b in match iEa || iEb with
-                              | true -> Leaf []
-                              | false -> Node (Mult,Leaf a,Leaf b)
+| Node (Mult,Leaf a,Leaf b) -> begin match a=0. || b=0. with
+                              | true -> Leaf 0.
+                              | false -> Leaf (a*.b)
                               end
-| Node (Mult,Leaf a,b) -> if isEmpty a then Leaf [] else Node (Mult,Leaf a,clean b)
-| Node (Mult,a,Leaf b) -> clean (Node (Mult,Leaf b,clean a))
+| Node (Mult,Leaf a,b) -> if a=0. then Leaf 0. else Node (Mult,Leaf a,clean b)
+| Node (Mult,a,Leaf b) -> clean (Node (Mult,Leaf b,a))
 
-| Node (Quotient,Leaf a,Leaf b) -> begin let iEa=isEmpty a and iEb=isEmpty b in 
-                                        if iEb then failwith "Pas derivable" else
-                                        if iEa && iEb then Leaf [] else
-                                          Node (Quotient,Leaf a,Leaf b)
+| Node (Quotient,Leaf a,Leaf b) -> begin if b=0. then failwith "Pas derivable" else
+                                        if a=0. && b=0. then Leaf 0. else
+                                          Leaf (a/.b)
                                         end
-| Node (Quotient,Leaf a,b) -> if isEmpty a then Leaf [] else Node (Quotient,Leaf a,clean b)
-| Node (Quotient,a,Leaf b) -> if isEmpty b then failwith "Pas derivable" else Node (Quotient,clean a,Leaf b)
+| Node (Quotient,Leaf a,b) -> if a=0. then Leaf 0. else Node (Quotient,Leaf a,clean b)
+| Node (Quotient,a,Leaf b) -> if b=0. then failwith "Pas derivable" else Node (Quotient,clean a,Leaf b)
 | Node (op,a,b) -> Node (op,clean a,clean b)
 | Fonction (f,Leaf a) -> Fonction (f,Leaf a)
 | Fonction (f, a) -> Fonction (f,clean a)
-| Leaf a -> Leaf a;;
+| Leaf a -> Leaf a
+| X -> X;;
 
 let deriveur expr =
   let rec deriveur=function
@@ -139,7 +158,7 @@ let deriveur expr =
                                             Node (Mult,deriveur exp1,exp2),
                                             Node (Mult,exp2,deriveur exp1)
                                           )
-                                          ,Fonction("exp",Node (Mult,Leaf [2.,0],Fonction("ln",(exp2))))
+                                          ,Fonction("exp",Node (Mult,Leaf 2.,Fonction("ln",(exp2))))
                                         )
                           end
   (*| Pow (k,exp1) -> begin match k with
@@ -148,7 +167,10 @@ let deriveur expr =
                     | k->Node (Mult,Leaf [k,0],(Pow (k-.1.,deriveur exp1))) 
                     end*)
   | Fonction (f,exp1) -> Node (Mult,deriveur exp1,derivee_f f exp1)
-  | Leaf p-> Leaf (derivee_P p) in expr |> deriveur |> clean;;
+  | Leaf p-> Leaf 0.
+  | X -> Leaf 1.
+  in deriveur expr
+;;
 
 let rec eval f x= match f with
 | Node (Sum,exp1,exp2)  -> eval exp1 x +. eval exp2 x
@@ -156,7 +178,8 @@ let rec eval f x= match f with
 | Node (Mult,exp1,exp2) -> eval exp1 x *. eval exp2 x
 | Node (Quotient,exp1,exp2) -> eval exp1 x /. eval exp2 x
 | Fonction (f,exp1) -> eval_f f exp1 x
-| Leaf p-> eval_P p x
+| Leaf p-> p
+| X -> x
 and eval_f f expr x= match f with
 | "sin" -> sin (eval expr x)
 | "cos" -> cos (eval expr x)
