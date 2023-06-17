@@ -1,16 +1,15 @@
-/* file: calc.mly */
-/* Infix notatoin calculator -- calc */
+/* fichier: calc.mly */
 %{
 open Printf
 %}
-/* Ocamlyacc Declarations */
+/* Déclarations Ocamlyacc */
 %token NEWLINE
 %token L_PAREN R_PAREN
 %token <float> NUM
 %token PLUS MINUS MULTIPLY DIVIDE CARET QUOTIENT TEX_BRACE_OPEN TEX_BRACE_CLOSE X
 %left PLUS MINUS
 %left MULTIPLY DIVIDE
-%left NEG /* negation -- unary minus */
+%left NEG /* négation -- moins unaire */
 %right CARET /* exponentiation */
 %start input
 %type <Deriveur.expression> input
