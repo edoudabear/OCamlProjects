@@ -74,11 +74,6 @@ Opérateur fois par défaut
     | exp CARET TEX_BRACE_OPEN exp TEX_BRACE_CLOSE  {
         Deriveur.simplificateur $1 $4
     }
-    /*| NUM CARET NUM {
-        (Deriveur.pow_rat_e (Deriveur.Leaf_e $1) (Deriveur.Leaf_e $3))
-    }
-    | COMPLEX_I CARET NUM { Deriveur.pow_rat_e (Deriveur.Leaf_e (true,1,1)) (Deriveur.Leaf_e $3)}*/
-    /* Exponentielle */
     | EXPONENTIAL L_PAREN exp R_PAREN { Deriveur.Fonction_e (Exp_e,$3) }
     | E_POW TEX_BRACE_OPEN exp TEX_BRACE_CLOSE { Deriveur.Fonction_e (Exp_e,$3) }
     | E_POW exp { Deriveur.Fonction_e (Exp_e,$2)}

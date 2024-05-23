@@ -1,9 +1,6 @@
 # A travailler :
-- Corriger les erreurs de l'algorithme de mise en forme canonique : exponentielle instable
 - Présentation :
     - Détailler l'étape de canonisation et l'illustrer à l'aide d'un exemple
-    - Reprendre l'exemple de conversion de structure (ne rend pas compte de la partie délicate de l'algorithme)
-    - Mise à jour de l'annexe
 - Rapport TIPE ENS :
     - L'avancer et détailler le théorème de Richardson (+ contribution théorème de Matiiasevitch)
 

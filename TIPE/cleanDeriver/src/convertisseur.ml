@@ -33,12 +33,16 @@ let rec to_extended_exp=function
 | Puissance a -> Puissance_e a
 | Leaf a -> Leaf_e a;;
 
+let is_3ple_null=function
+| (_,0,_) -> true
+| _ -> false
+
 (* Conversion expression étendue en expression dérivable : *)
 (* Conversion des sin,exp et tan en exp *)
 let rec fct_convert=function
 | Fonction_e (Exp_e,exp) -> Fonction_e (Exp_e,fct_convert exp)
 | Fonction_e (Sin_e,exp) -> let cv=fct_convert exp in Node_e (
-                          Quotient_e,
+                          Mult_e,
                           Node_e(
                             Sum_e,
                             Fonction_e (
@@ -52,9 +56,9 @@ let rec fct_convert=function
                                 Node_e(Mult_e,Leaf_e (true,-1,1),cv))
                             )
                           ),
-                          Leaf_e (false,2,1))
+                          Leaf_e (true,1,2))
 | Fonction_e (Cos_e,exp) -> let cv=fct_convert exp in Node_e (
-                        Quotient_e,
+                        Mult_e,
                         Node_e(
                           Sum_e,
                           Fonction_e (
@@ -66,21 +70,53 @@ let rec fct_convert=function
                             Node_e(Mult_e,Leaf_e (true,-1,1),cv)
                           )
                         ),
-                        Leaf_e (false,2,1))
-| Fonction_e(Tan_e,exp) -> Node_e (Quotient_e,fct_convert (Fonction_e (Sin_e,exp)),fct_convert (Fonction_e (Cos_e,exp)))
+                        Leaf_e (false,1,2))
+| Fonction_e(Tan_e,exp) -> let exp'=fct_convert exp in Node_e (Quotient_e,  
+                                                  Node_e (
+                                                    Mult_e,
+                                                    Leaf_e(true,-1,1),
+                                                    (Node_e (
+                                                      Sum_e,
+                                                      Fonction_e (
+                                                        Exp_e,
+                                                        Node_e(Mult_e,Leaf_e (true,1,1),exp')
+                                                      ),
+                                                      Node_e( 
+                                                        Mult_e,
+                                                        Leaf_e (false,-1,1),
+                                                          Fonction_e(
+                                                            Exp_e,
+                                                            Node_e(Mult_e,Leaf_e (true,-1,1),exp')
+                                                          )
+                                                        )
+                                                      )
+                                                    )
+                                                  ),
+                                                  Node_e(
+                                                    Sum_e,
+                                                    Fonction_e (
+                                                      Exp_e,
+                                                      Node_e(Mult_e,Leaf_e (true,1,1),exp')
+                                                    ),
+                                                    Fonction_e(
+                                                      Exp_e,
+                                                      Node_e(Mult_e,Leaf_e (true,-1,1),exp')
+                                                    )
+                                                  )
+                                                )
 | Node_e(op,exp1,exp2) -> Node_e(op,fct_convert exp1,fct_convert exp2)
 | Puissance_e a-> Puissance_e a
 | Leaf_e a -> Leaf_e a;;
 
 let rec reduce_to_simple_quotient =function (* Ramène un expression à un quotient de la forme A/B, avec A et B sans quotients*)
-| Fonction_e (Exp_e,exp) -> let exp'=reduce_to_simple_quotient exp in begin match exp' with 
-                                                              | Fonction_e (_,_) -> failwith "Une composition d'exponentielles n'est pas autorisée"
+| Fonction_e (Exp_e,exp) -> let exp'=reduce_to_simple_quotient exp in begin match exp' with
+                                                              | Fonction_e (a,_) when a <> Exp_e -> failwith "La conversion partielle des fonctions est censée empêcher d'avoir d'autres fonctions que exp"
                                                               | Node_e (Quotient_e,_,_) -> failwith "Quotient interdit à l'intérieur d'une exponentielle !" 
                                                               | a -> Fonction_e (Exp_e,a) end
 | Fonction_e (_,exp) -> failwith "Les fonctions sin, cos et tan sont censées être converties en exp"
 | Node_e (Sum_e,exp1,exp2)->let exp1',exp2'=reduce_to_simple_quotient exp1,reduce_to_simple_quotient exp2 in
                         begin match exp1',exp2' with
-                        | (Node_e(Quotient_e,a,b) : expression_etendue),Node_e(Quotient_e,c,d) ->Node_e (Quotient_e,Node_e(Sum_e,Node_e(Mult_e,a,d),Node_e(Mult_e,b,c)),Node_e(Mult_e,b,d))
+                        | (Node_e(Quotient_e,a,b) : expression_etendue),Node_e(Quotient_e,c,d) -> Node_e (Quotient_e,Node_e(Sum_e,Node_e(Mult_e,a,d),Node_e(Mult_e,b,c)),Node_e(Mult_e,b,d))
                         | Node_e(Quotient_e,a,b),c | c,Node_e(Quotient_e,a,b)-> Node_e(Quotient_e,Node_e(Sum_e,a,Node_e(Mult_e,c,b)),b)
                         | a,b -> Node_e (Sum_e,a,b)
                         end
@@ -93,7 +129,8 @@ let rec reduce_to_simple_quotient =function (* Ramène un expression à un quoti
 | Node_e(Quotient_e,exp1,exp2) ->let exp1',exp2'=reduce_to_simple_quotient exp1,reduce_to_simple_quotient exp2 in
                         begin match exp1',exp2' with
                         | Node_e(Quotient_e,a,b),Node_e(Quotient_e,c,d) -> Node_e(Quotient_e,Node_e(Mult_e,a,d),Node_e(Mult_e,b,c))
-                        | Node_e(Quotient_e,a,b),c | c,Node_e(Quotient_e,a,b)->Node_e(Quotient_e,a,Node_e(Mult_e,b,c))
+                        | Node_e(Quotient_e,a,b),c -> Node_e(Quotient_e,a,Node_e(Mult_e,b,c))
+                        | c,Node_e(Quotient_e,a,b) -> Node_e(Quotient_e,Node_e(Mult_e,b,c),a)
                         | a,b->Node_e(Quotient_e,a,b)
 end
 | a->a;;
@@ -117,11 +154,11 @@ let rec print_exp_latex_s=function
 | Node(Mult,l)     -> print_exp_latex_s (List.hd l); List.iter (fun v->Printf.printf "*";print_exp_latex_s v) (List.tl l)
 | Node(Sum,l)      -> Printf.printf "\n";print_exp_latex_s (List.hd l); List.iter (fun v-> Printf.printf "+\n";print_exp_latex_s v) (List.tl l);Printf.printf "\n"
 | Exp a            -> Printf.printf "e^{"; print_exp_latex_s a; Printf.printf "}";
-| Leaf(bo,p,q)     -> Printf.printf "%d%s" (p/q) (if bo then "i" else "");
+| Leaf(bo,p,q)     -> Printf.printf "%f%s" (float_of_int p/.float_of_int q) (if bo then "i" else "");
 | Puissance(bo,p,q)-> Printf.printf "x^{%d%s}" (p/q) (if bo then "i" else "");;
 
 let rec print_struct_s = function
-| Node (op,l) -> Printf.printf "Node (%s,[" (if op=Mult then "Mult" else "Sum") ; List.iter (fun s->print_struct_s s;Printf.printf ";") l ;Printf.printf "])"
+| Node (op,l) -> Printf.printf "Node (%s,[\n" (if op=Mult then "Mult" else "Sum") ; List.iter (fun s->print_struct_s s;Printf.printf ";\n") l ;Printf.printf "])"
 | Leaf (b,p,q) -> Printf.printf "Leaf (%b,%d,%d)" b p q;
 | Puissance (b,p,q) -> Printf.printf "Puissance (%b,%d,%d)" b p q;
 | Exp a-> Printf.printf "Exp ("; print_struct_s a; Printf.printf ")";;

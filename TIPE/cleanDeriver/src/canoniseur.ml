@@ -112,9 +112,6 @@ let distribuer l=
   | l::t -> let f_dev=iterator t in List.fold_left (fun h fact->h@List.map (fun prod->fact::prod) f_dev) [] l
   in (iterator sums |> List.map (fun l->Node (Mult,l)));;
 
-(* Pseudo-prototype de forme_canonique [Plus utilisé]*)
-  let fc=ref (Fun.id);;
-
 
 (* Fonction qui s'assure d'avoir l'ensemble des sommes AVANT les produits dans la représentation arborescente *)
 (* Traîtement de l'exponentielle défaillant *)
@@ -194,13 +191,21 @@ let rec equiv_nul = function
 | Leaf (_,a,_) -> a=0
 | Exp _ -> false;;
 
+(* Fonction qui supprime les termes à coefficients 0 (nécessaire à cause de l'exponentielle)*)
+let rec filter_zeros =function
+    | Node (Mult,l)->List.exists (function | Leaf (_,0,_) -> true | _ -> false) l
+    | Node (Sum,l) -> List.for_all filter_zeros l
+    | Leaf (_,0,_) -> true
+    | _ -> false
+;;
+
 let rec forme_canonique e= 
  let e'=e |> order_nodes in 
  (*Printf.printf "\nINPUT : "; 
  print_struct_s e;
  Printf.printf "\nOUTPUT : " ;
  print_struct_s e'; Printf.printf "\n\n";*)
- e' |> handle_sum false |> factorisation 
+ e' |> handle_sum false |> factorisation
  
  and
 (* Fonction handle_sum : *)
@@ -218,7 +223,8 @@ handle_sum b exp=
 and factorize l=
   let (e,p,c)=ref ([Leaf (false,0,1)]),ref (false,0,1),ref (false,1,1) in
   let rec iter=function
-  | [] -> [(if !e= [Leaf (false,0,1)] then Exp(Leaf (false,0,1)) else begin
+  | [] -> if is_3ple_null !c then [Exp (Leaf (false,0,1)); Puissance (false,0,1) ; Leaf (false,0,1)] else [ (* Cas simplification exponentielle*)
+            (if !e= [Leaf (false,0,1)] then Exp(Leaf (false,0,1)) else begin
           let e2=forme_canonique (if List.length !e = 1 then (List.hd !e) else (Node (Sum,!e))) in
             if equiv_nul e2 then Exp(Leaf (false,0,1)) else
               Exp e2
@@ -231,19 +237,25 @@ and factorize l=
   in
   iter l;;
 
-let ()=fc := forme_canonique;;
-
-
 
 let compare_eq exp1 exp2=
   (*Printf.printf "comparaison :\n";*)
   let e1,e2=(exp1 |> fct_convert,exp2 |> fct_convert) |> delete_prod in
+  (*Printf.printf "Simplifié :\n";
+  print_expression e1;
+  Printf.printf "\n\n";
+  print_expression e2;
+  Printf.printf "\n\n";*)
   let e1',e2'=partial_conversion e1,partial_conversion e2 in
   (*Printf.printf "Formes converties \ne1 : ";
   e1' |> to_extended_exp |> print_struct;Printf.printf "\ne2 : "; e2' |> to_extended_exp |> print_struct;
   Printf.printf "\n";*)
-  let e=forme_canonique (Node(Sum,[e1';Node(Mult,[Leaf (false,-1,1);e2'])])) in
+  let e=forme_canonique (Node(Sum,[e1';Node(Mult,[Leaf (false,-1,1);e2'])])) |> forme_canonique in
+  (*Printf.printf "Résultat :\n";
+  print_exp_latex_s e;
+  Printf.printf "\n";*)
   match e with
   | Node (Sum,[Leaf (_,0,_)]) -> Printf.printf "true\n"; 1
+  | e when filter_zeros e -> Printf.printf "true\n"; 1
   | a -> Printf.printf "false\n"; 0
 ;;

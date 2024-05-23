@@ -14,7 +14,7 @@ rule token = parse
 | digit+
 | "." digit+
 | digit+ "." digit* as num
-(* Le -49 devant le "int_of_char est pour convertier le CODE CHAR vers l'entier qu'il désigne" *)
+(* Le -49 devant le "int_of_char est pour convertir le CODE CHAR vers l'entier qu'il désigne" *)
 { NUM (let dec=ref false in let (bo,a,b)=String.fold_left (fun (bo,a,b) c->if c=',' || c='.' then begin dec:=true; (bo,a,b) end else if !dec then (bo,10*a+int_of_char c-48,10*b) else (bo,10*a+int_of_char c-48,b)) (false,0,1) num
                             in (bo,a/(Deriveur.gcd a b),b/(Deriveur.gcd a b))) }
 | "," digit+
